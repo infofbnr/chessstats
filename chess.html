@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chess Stats</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: aqua;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    .form-group label {
+      display: block;
+      font-weight: bold;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 5px;
+    }
+    .btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #45a049;
+    }
+    .stats-container {
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      padding: 10px;
+      background-color: #ddd;
+    }
+    .stats-container h2 {
+      margin-top: 0;
+    }
+    .stats-container p {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Chess Stats</h1>
+    <div class="form-group">
+      <label for="username">Enter Username:</label>
+      <input type="text" id="username" placeholder="Username">
+    </div>
+    <button class="btn" onclick="fetchStats()">Get Stats</button>
+    <div id="statsContainer" class="stats-container"></div>
+  </div>
+
+  <script>
+    function fetchStats() {
+      var username = document.getElementById('username').value;
+      var request = new XMLHttpRequest();
+      var request2 = new XMLHttpRequest();
+      request.open('GET', `https://api.chess.com/pub/player/${username}/stats`, true);
+      request2.open('GET',`https://api.chess.com/pub/player/${username}`,true);
+      request.onreadystatechange = function() {
+        if (this.readyState === 4 && this.status === 200) {
+          var data = JSON.parse(this.responseText);
+          displayStats(data);
+        }
+
+      };
+      request2.onreadystatechange = function() {
+        if (this.readyState === 4 && this.status === 200) {
+          var data2 = JSON.parse(this.responseText);
+          displayStats(data2);
+        }
+
+      };
+      request2.send();
+      request.send();
+    }
+
+    function displayStats(data) {
+      var statsContainer = document.getElementById('statsContainer');
+      statsContainer.innerHTML = '';
+
+      if (data && data.chess_rapid) {
+        var rapidStats = data.chess_rapid;
+        var html = '<h2>Rapid</h2>';
+        html += '<p>Wins: ' + rapidStats.record.win + '</p>';
+        html += '<p>Losses: ' + rapidStats.record.loss + '</p>';
+        html += '<p>Highest Elo: ' + rapidStats.best.rating + '</p>';
+        html += '<p>Current Rating: ' + rapidStats.last.rating + '</p>';
+        statsContainer.innerHTML += html;
+      }
+
+      if (data && data.chess_blitz) {
+        var blitzStats = data.chess_blitz;
+        var html = '<h2>Blitz</h2>';
+        html += '<p>Wins: ' + blitzStats.record.win + '</p>';
+        html += '<p>Losses: ' + blitzStats.record.loss + '</p>';
+        html += '<p>Highest Elo: ' + blitzStats.best.rating + '</p>';
+        html += '<p>Current Rating: ' + blitzStats.last.rating + '</p>';
+        statsContainer.innerHTML += html;
+      }
+
+      if (data && data.chess_bullet) {
+        var bulletStats = data.chess_bullet;
+        var html = '<h2>Bullet</h2>';
+        html += '<p>Wins: ' + bulletStats.record.win + '</p>';
+        html += '<p>Losses: ' + bulletStats.record.loss + '</p>';
+        html += '<p>Highest Elo: ' + bulletStats.best.rating + '</p>';
+        html += '<p>Current Rating: ' + bulletStats.last.rating + '</p>';
+        statsContainer.innerHTML += html;
+      }
+
+      if (data) {
+        var league = data2.league;
+        var status = data2.status;
+        var lastOnline = convertTimestamp(data2.last_online);
+        var html = '<h2>Other</h2>';
+        html += '<p>League: ' + league + '</p>';
+        html += '<p>Status: ' + status + '</p>';
+        html += '<p>Last Online: ' + lastOnline + '</p>';
+        statsContainer.innerHTML += html;
+      }
+
+      if (!data || (!data.chess_rapid && !data.chess_blitz && !data.chess_bullet && !data2.league)) {
+        statsContainer.innerHTML = '<p>No stats found for the provided username.</p>';
+      }
+    }
+
+    function convertTimestamp(timestamp) {
+      var date = new Date(timestamp * 1000);
+      return date.toLocaleString();
+    }
+  </script>
+</body>
+</html>
